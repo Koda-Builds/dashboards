@@ -40,6 +40,12 @@
       font-weight: 600;
     }
 
+    .last-updated {
+      color: #8b949e;
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+
     .header-controls {
       display: flex;
       align-items: center;
@@ -351,7 +357,10 @@
 <body>
   <div class="container">
     <header>
-      <h1>Moltbook Dashboard</h1>
+      <div>
+        <h1>Moltbook Dashboard</h1>
+        <div class="last-updated" id="lastUpdated">Last updated: --</div>
+      </div>
       <div class="header-controls">
         <span class="auto-refresh-status">Auto-refresh: <span id="countdown">60</span>s</span>
         <button class="refresh-btn" id="refreshBtn" onclick="loadData()">Refresh</button>
@@ -490,7 +499,16 @@
     function formatLastCheck(dateStr) {
       if (!dateStr) return '--';
       const date = new Date(dateStr);
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const options = { 
+        weekday: 'short', 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit', 
+        minute: '2-digit',
+        timeZoneName: 'short'
+      };
+      return date.toLocaleString('en-US', options);
     }
 
     function escapeHtml(text) {
@@ -601,7 +619,8 @@
         clearError();
 
         // Status
-        document.getElementById('lastCheckBadge').textContent = 'Last: ' + formatLastCheck(data.lastCheck);
+        document.getElementById('lastUpdated').textContent = 'Last updated: ' + formatLastCheck(data.lastCheck);
+        document.getElementById('lastCheckBadge').textContent = formatTimestamp(data.lastCheck);
         document.getElementById('postsToday').textContent = data.postsToday ?? '--';
         document.getElementById('commentsToday').textContent = data.commentsToday ?? '--';
 
