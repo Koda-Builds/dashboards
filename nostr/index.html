@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nostr Dashboard — Koda</title>
+  <style>
+    :root {
+      --bg: #1a1a2e;
+      --card: #16213e;
+      --accent: #9d4edd;
+      --text: #eee;
+      --muted: #888;
+      --success: #00d26a;
+      --zap: #f7931a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    h1 { font-size: 1.5rem; }
+    h1 a { color: var(--accent); text-decoration: none; }
+    .meta { color: var(--muted); font-size: 0.85rem; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .stat {
+      background: var(--card);
+      padding: 16px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: var(--accent);
+    }
+    .stat-value.zap { color: var(--zap); }
+    .stat-label { color: var(--muted); font-size: 0.8rem; margin-top: 4px; }
+    .section {
+      background: var(--card);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .section h2 {
+      font-size: 1rem;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section h2 .count {
+      background: var(--accent);
+      color: white;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .note {
+      border-bottom: 1px solid #ffffff10;
+      padding: 12px 0;
+    }
+    .note:last-child { border-bottom: none; }
+    .note-content { margin-bottom: 8px; line-height: 1.5; }
+    .note-meta { color: var(--muted); font-size: 0.8rem; }
+    .note-meta span { margin-right: 12px; }
+    .zap-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #ffffff10;
+    }
+    .zap-item:last-child { border-bottom: none; }
+    .zap-amount { color: var(--zap); font-weight: bold; }
+    .empty { color: var(--muted); font-style: italic; }
+    .profile-link {
+      background: var(--accent);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .npub {
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+      word-break: break-all;
+      margin-top: 8px;
+    }
+    .relays {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .relay {
+      background: #ffffff10;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>🐻 <a href="https://primal.net/p/npub18p9nwam7647k9yftnutqffmevatrvum088400vrl338v6ak7jvnsuh789a">Koda</a> on Nostr</h1>
+      <p class="meta">Last updated: <span id="lastCheck">--</span></p>
+    </div>
+    <a class="profile-link" href="https://primal.net/p/npub18p9nwam7647k9yftnutqffmevatrvum088400vrl338v6ak7jvnsuh789a" target="_blank">View Profile ↗</a>
+  </header>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-value" id="followers">--</div>
+      <div class="stat-label">Followers</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="following">--</div>
+      <div class="stat-label">Following</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="notes">--</div>
+      <div class="stat-label">Notes</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value zap" id="zaps">--</div>
+      <div class="stat-label">Zaps Received ⚡</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>📝 Recent Notes <span class="count" id="notesCount">0</span></h2>
+    <div id="notesList">
+      <p class="empty">No notes yet</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>⚡ Recent Zaps <span class="count" id="zapsCount">0</span></h2>
+    <div id="zapsList">
+      <p class="empty">No zaps yet</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>📡 Relays</h2>
+    <div class="relays" id="relaysList"></div>
+    <p class="npub">npub18p9nwam7647k9yftnutqffmevatrvum088400vrl338v6ak7jvnsuh789a</p>
+  </div>
+
+  <script>
+    const DASHBOARD_DATA = "data.json";
+    
+    async function loadDashboard() {
+      try {
+        const res = await fetch(DASHBOARD_DATA + '?t=' + Date.now());
+        const data = await res.json();
+        
+        // Update timestamp
+        document.getElementById('lastCheck').textContent = 
+          data.lastCheck ? new Date(data.lastCheck).toLocaleString() : '--';
+        
+        // Update stats
+        document.getElementById('followers').textContent = data.stats?.followers ?? '--';
+        document.getElementById('following').textContent = data.stats?.following ?? '--';
+        document.getElementById('notes').textContent = data.stats?.notes ?? '--';
+        document.getElementById('zaps').textContent = data.stats?.zapsReceived ?? '--';
+        
+        // Update notes
+        const notesList = document.getElementById('notesList');
+        const notes = data.recentNotes || [];
+        document.getElementById('notesCount').textContent = notes.length;
+        
+        if (notes.length > 0) {
+          notesList.innerHTML = notes.map(note => `
+            <div class="note">
+              <div class="note-content">${escapeHtml(note.content)}</div>
+              <div class="note-meta">
+                <span>❤️ ${note.reactions || 0}</span>
+                <span>🔁 ${note.reposts || 0}</span>
+                <span>⚡ ${note.zaps || 0}</span>
+                <span>${formatTime(note.created_at)}</span>
+              </div>
+            </div>
+          `).join('');
+        }
+        
+        // Update zaps
+        const zapsList = document.getElementById('zapsList');
+        const zaps = data.recentZaps || [];
+        document.getElementById('zapsCount').textContent = zaps.length;
+        
+        if (zaps.length > 0) {
+          zapsList.innerHTML = zaps.map(zap => `
+            <div class="zap-item">
+              <span>${zap.from || 'Anonymous'}</span>
+              <span class="zap-amount">${zap.amount} sats</span>
+            </div>
+          `).join('');
+        }
+        
+        // Update relays
+        const relaysList = document.getElementById('relaysList');
+        const relays = data.relays || [];
+        relaysList.innerHTML = relays.map(r => 
+          `<span class="relay">${r.replace('wss://', '')}</span>`
+        ).join('');
+        
+      } catch (e) {
+        console.error('Failed to load dashboard:', e);
+      }
+    }
+    
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    function formatTime(ts) {
+      if (!ts) return '';
+      const d = new Date(ts * 1000);
+      return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    }
+    
+    loadDashboard();
+    setInterval(loadDashboard, 60000);
+  </script>
+</body>
+</html>

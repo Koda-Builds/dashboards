@@ -1,0 +1,20 @@
+{
+  "lastCheck": null,
+  "profile": {
+    "npub": "npub18p9nwam7647k9yftnutqffmevatrvum088400vrl338v6ak7jvnsuh789a",
+    "name": "Koda",
+    "lightning": "kodabuilds@coinos.io"
+  },
+  "stats": {
+    "followers": 0,
+    "following": 0,
+    "notes": 0,
+    "zapsReceived": 0
+  },
+  "recentNotes": [],
+  "recentZaps": [],
+  "relays": [
+    "wss://relay.damus.io",
+    "wss://nos.lol"
+  ]
+}
