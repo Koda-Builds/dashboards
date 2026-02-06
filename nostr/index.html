@@ -118,6 +118,26 @@
       font-size: 0.75rem;
       color: var(--muted);
     }
+    .account-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #ffffff10;
+    }
+    .account-item:last-child { border-bottom: none; }
+    .account-info { flex: 1; }
+    .account-name { font-weight: 500; }
+    .account-name a { color: var(--accent); text-decoration: none; }
+    .account-npub { font-family: monospace; font-size: 0.7rem; color: var(--muted); }
+    .account-note { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+    .bookmark-item {
+      padding: 10px 0;
+      border-bottom: 1px solid #ffffff10;
+    }
+    .bookmark-item:last-child { border-bottom: none; }
+    .bookmark-content { line-height: 1.4; margin-bottom: 6px; }
+    .bookmark-author { font-size: 0.8rem; color: var(--accent); }
   </style>
 </head>
 <body>
@@ -159,6 +179,27 @@
     <h2>⚡ Recent Zaps <span class="count" id="zapsCount">0</span></h2>
     <div id="zapsList">
       <p class="empty">No zaps yet</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>👥 Following <span class="count" id="followingCount">0</span></h2>
+    <div id="followingList">
+      <p class="empty">Not following anyone yet</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🔖 Bookmarks <span class="count" id="bookmarksCount">0</span></h2>
+    <div id="bookmarksList">
+      <p class="empty">No bookmarks yet</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>👀 Watchlist <span class="count" id="watchlistCount">0</span></h2>
+    <div id="watchlistList">
+      <p class="empty">No accounts on watchlist</p>
     </div>
   </div>
 
@@ -215,6 +256,54 @@
             <div class="zap-item">
               <span>${zap.from || 'Anonymous'}</span>
               <span class="zap-amount">${zap.amount} sats</span>
+            </div>
+          `).join('');
+        }
+        
+        // Update following
+        const followingList = document.getElementById('followingList');
+        const following = data.following || [];
+        document.getElementById('followingCount').textContent = following.length;
+        
+        if (following.length > 0) {
+          followingList.innerHTML = following.map(acct => `
+            <div class="account-item">
+              <div class="account-info">
+                <div class="account-name"><a href="https://primal.net/p/${acct.npub}" target="_blank">${escapeHtml(acct.name || 'Unknown')}</a></div>
+                <div class="account-npub">${acct.npub?.slice(0, 20)}...</div>
+                ${acct.note ? `<div class="account-note">${escapeHtml(acct.note)}</div>` : ''}
+              </div>
+            </div>
+          `).join('');
+        }
+        
+        // Update bookmarks
+        const bookmarksList = document.getElementById('bookmarksList');
+        const bookmarks = data.bookmarks || [];
+        document.getElementById('bookmarksCount').textContent = bookmarks.length;
+        
+        if (bookmarks.length > 0) {
+          bookmarksList.innerHTML = bookmarks.map(bm => `
+            <div class="bookmark-item">
+              <div class="bookmark-content">${escapeHtml(bm.content?.slice(0, 200))}${bm.content?.length > 200 ? '...' : ''}</div>
+              <div class="bookmark-author">— ${escapeHtml(bm.author || 'Unknown')}</div>
+            </div>
+          `).join('');
+        }
+        
+        // Update watchlist
+        const watchlistList = document.getElementById('watchlistList');
+        const watchlist = data.watchlist || [];
+        document.getElementById('watchlistCount').textContent = watchlist.length;
+        
+        if (watchlist.length > 0) {
+          watchlistList.innerHTML = watchlist.map(acct => `
+            <div class="account-item">
+              <div class="account-info">
+                <div class="account-name"><a href="https://primal.net/p/${acct.npub}" target="_blank">${escapeHtml(acct.name || 'Unknown')}</a></div>
+                <div class="account-npub">${acct.npub?.slice(0, 20)}...</div>
+                ${acct.reason ? `<div class="account-note">${escapeHtml(acct.reason)}</div>` : ''}
+              </div>
             </div>
           `).join('');
         }
