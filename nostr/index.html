@@ -138,6 +138,46 @@
     .bookmark-item:last-child { border-bottom: none; }
     .bookmark-content { line-height: 1.4; margin-bottom: 6px; }
     .bookmark-author { font-size: 0.8rem; color: var(--accent); }
+    .post-item {
+      padding: 12px 0;
+      border-bottom: 1px solid #ffffff10;
+    }
+    .post-item:last-child { border-bottom: none; }
+    .post-title {
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+    .post-title a { color: var(--accent); text-decoration: none; }
+    .post-title a:hover { text-decoration: underline; }
+    .post-summary {
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+    .post-meta {
+      display: flex;
+      gap: 12px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      flex-wrap: wrap;
+    }
+    .post-meta .signed {
+      color: var(--success);
+    }
+    .post-tags {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .post-tag {
+      background: #ffffff10;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
   </style>
 </head>
 <body>
@@ -163,8 +203,19 @@
       <div class="stat-label">Notes</div>
     </div>
     <div class="stat">
+      <div class="stat-value" id="articles">--</div>
+      <div class="stat-label">Signed Articles</div>
+    </div>
+    <div class="stat">
       <div class="stat-value zap" id="zaps">--</div>
       <div class="stat-label">Zaps Received ⚡</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>📜 Signed Posts (NIP-23) <span class="count" id="postsCount">0</span></h2>
+    <div id="postsList">
+      <p class="empty">No signed posts yet</p>
     </div>
   </div>
 
@@ -225,8 +276,29 @@
         document.getElementById('followers').textContent = data.stats?.followers ?? '--';
         document.getElementById('following').textContent = data.stats?.following ?? '--';
         document.getElementById('notes').textContent = data.stats?.notes ?? '--';
+        document.getElementById('articles').textContent = data.stats?.articles ?? '--';
         document.getElementById('zaps').textContent = data.stats?.zapsReceived ?? '--';
         
+        // Update signed posts
+        const postsList = document.getElementById('postsList');
+        const posts = data.signedPosts || [];
+        document.getElementById('postsCount').textContent = posts.length;
+        
+        if (posts.length > 0) {
+          postsList.innerHTML = posts.map(post => `
+            <div class="post-item">
+              <div class="post-title"><a href="${post.blogUrl || '#'}" target="_blank">${escapeHtml(post.title)}</a></div>
+              <div class="post-summary">${escapeHtml(post.summary || '')}</div>
+              <div class="post-meta">
+                <span>${formatTime(post.publishedAt)}</span>
+                <span class="signed">🔐 Signed</span>
+                ${post.verifyUrl ? `<span><a href="${post.verifyUrl}" target="_blank" style="color: var(--accent);">Verify on Nostr ↗</a></span>` : ''}
+              </div>
+              ${post.tags?.length ? `<div class="post-tags">${post.tags.map(t => `<span class="post-tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+            </div>
+          `).join('');
+        }
+
         // Update notes
         const notesList = document.getElementById('notesList');
         const notes = data.recentNotes || [];
